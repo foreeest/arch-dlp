@@ -23,7 +23,7 @@ jobs:
         mkdir -p build
         for program in before_optimize cmp0 try3 ; do
           echo "Compiling $program..."
-          g++ -O0 -std=c++20 -m64 -mavx2 -fopenmp -o "./build/$program" "./src/$program.cpp"
+          g++ -O0 -std=c++20 -m64 -mavx2 -march=native -fopenmp -o "./build/$program" "./src/$program.cpp"
 
           echo "Running $program..."
           start_time=$(date +%s%3N)

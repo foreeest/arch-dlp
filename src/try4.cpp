@@ -17,12 +17,14 @@ class FigureProcessor {
 private:
   unsigned char* figure;
   unsigned char* result;
+  unsigned char* temp;
   const size_t size;
 
 public:
   FigureProcessor(size_t size, size_t seed = 0) : size(size) {
     figure = new unsigned char[size * size];
     result = new unsigned char[size * size];
+    temp = new unsigned char[size * size];
 
     // !!! Please do not modify the following code !!!
     std::random_device rd;
@@ -116,6 +118,42 @@ public:
             }
         }
     }
+
+    void gFOpt2() {
+        constexpr size_t vecSize = 32; // 每次处理 32 个字节（32 个像素）
+        
+        #pragma omp parallel for
+        for (size_t i = 1; i < size - 1; ++i) { 
+            for (size_t j = 1; j + vecSize <= size - 1; j += vecSize) { 
+                // 加载数据到 AVX2 寄存器
+                __m128i left  = _mm_loadu_si128((__m128i*)&figure[i * size + (j - 1)]);
+                __m128i mid  = _mm_loadu_si128((__m128i*)&figure[i * size + j]);
+                __m128i right  = _mm_loadu_si128((__m128i*)&figure[i * size + (j + 1)]);
+
+                // 扩展到 16 位，避免溢出
+                __m256i left_16  = _mm256_cvtepu8_epi16(left);
+                __m256i mid_16   = _mm256_cvtepu8_epi16(mid);
+                __m256i right_16 = _mm256_cvtepu8_epi16(right);
+
+                // 执行卷积计算：figure[i-1,j-1] + 2*figure[i,j] + figure[i+1,j+1]
+                __m256i weighted_sum = _mm256_add_epi16(
+                    _mm256_add_epi16(left_16, right_16),
+                    _mm256_add_epi16(_mm256_slli_epi16(mid_16, 1), mid_16) // 中间元素加倍
+                );
+
+                // 除以 4（相当于右移 2 位）
+                __m256i result_16 = _mm256_srli_epi16(weighted_sum, 2);
+
+                // 压缩回 8 位
+                __m128i result_8  = _mm_packus_epi16(_mm256_extracti128_si256(result_16, 0), _mm256_extracti128_si256(result_16, 1));
+
+                // 存储结果
+                _mm_storeu_si128((__m128i*)&temp[i * size + j], result_8);
+            }
+        }
+    }
+
+
 
     void powOpt() {
         constexpr float gamma = 0.5f;
@@ -222,7 +260,7 @@ public:
     std::cout << "gFOpt: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms\n";
 
     start = std::chrono::high_resolution_clock::now();
-    gFOpt1();
+    gFOpt2();
     end = std::chrono::high_resolution_clock::now();
     std::cout << "gFOpt1: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms\n";
 

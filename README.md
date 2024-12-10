@@ -11,12 +11,14 @@
 ----------| -------------          | ---------
 cmp0      | origin version，拆开来输出 | 5800 5800
 cmp1      | LUT                    | 5200 2000
-draft cache| LUT + v2a,列优先       | 2000 1600
+draft cache | LUT + v2a,列优先       | 2000 1600
 try1      | LUT + 分块(企图迎合cache)| 2000 1200
 cmp2      | LUT + v2a              | 1700 650(一维vector的话乘2、二维数组1600 800)
 try2      | LUT + v2a + AVX2       | 400 80
-try3      | LUT + v2a + OpenMP(16) | 260 100 (4thread 450 170; 2thread 900 330)
-try3      | LUT + v2a + OpenMP(16) x AVX2| 62 16 (4thread 116 20; 32thread 54 16; 2thread 230 40)
+try3 v1   | LUT + v2a + OpenMP(16) | 260 100 (4thread 450 170; 2thread 900 330)
+try3 v2   | LUT + v2a + OpenMP(16) x AVX2| 62 16 (4thread 116 20; 32thread 54 16; 2thread 230 40)
+draft_seperate | 分离巻积(基于cmp2) | 
+draft_tbb | 
 
 **可能方案**
 
@@ -87,6 +89,50 @@ L3        16M      16M   16 Unified         3 16384        1             64
 - 启用编译选项，该选项不影响其它执行时间
 - opm的始终和chronos就差2ms可以忽略
 
+为何最终try3 openmp+simd 之后gf还是pow的4倍左右
+
+## 面向github action的优化
+本地跑一样的代码
+```
+gF: 1772 ms
+gFOpt: 467 ms
+gFOpt1: 116 ms
+pow: 649 ms
+powOpt: 171 ms
+powOpt1: 24 ms
+```
+github action
+```
+gF: 2911 ms
+gFOpt: 2867 ms
+gFOpt1: 594 ms
+pow: 1128 ms
+powOpt: 1054 ms
+powOpt1: 110 ms
+```
+显然openMP完全无法体现优势
+
+本地和github action跑的try3校验和还不一样，不过try3确实有问题，本地也是每次校验和不同
+中间加乘运算确实是占时间的，注释掉快1倍
+
+github action使用姿势不对？
+试试github codespace？
+
+## 巻积分离
+3x3理论加速比不高，但不知道能否利用其局部性  
+直接比较 基本没怎么快
+原来1700, 分离是16xx，而且很均衡，横竖都是800多  
+
+试试整个写完  
+这个快不了多少  
+
+## OpenCV源码
+进一步缓存优化  
+
+## tbb
+
+md配置有点问题  
+
 ## 细节注意
 
 - [ ] char存像素高斯滤波会溢出吗？
@@ -95,4 +141,4 @@ L3        16M      16M   16 Unified         3 16384        1             64
 
 2333原始校验和684550983
 2222原始校验和683986230
-1111原始校验和
+1111原始校验和680660706

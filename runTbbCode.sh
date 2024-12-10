@@ -16,7 +16,7 @@ if [ ! -d "$BUILD_DIR" ]; then
 fi
 
 # 编译指令
-g++ -O0 -std=c++20 -m64 -mavx2 -march=native -fopenmp -o "./build/$PROGRAM_NAME" "./src/$PROGRAM_NAME.cpp"
+g++ -O0 -std=c++20 -m64 -o "./build/$PROGRAM_NAME" "./src/$PROGRAM_NAME.cpp"
 
 # 检查编译是否成功
 if [ $? -ne 0 ]; then
