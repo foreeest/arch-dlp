@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build and Run C++",
+        "type": "shell",
+        "command": "/usr/bin/g++-11",
+        "args": [
+            "-std=c++20",
+            "-O0",
+            "-m64",
+            "-mavx2",
+            "${file}",
+            "-o",
+            "${fileDirname}/${fileBasenameNoExtension}"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "detail": "Compile the before_optimize.cpp file."
+      },
+      {
+        "label": "Run Program",
+        "type": "shell",
+        "command": "./${fileBasenameNoExtension}",
+        "args": ["2333"],
+        "dependsOn": "Build and Run C++",
+        "problemMatcher": []
+      }
+    ]
+  }
+  

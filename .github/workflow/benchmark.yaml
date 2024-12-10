@@ -1,0 +1,38 @@
+name: Benchmark Code
+
+on:
+  push:
+    branches:
+      - master  # 在推送到 main 分支时触发
+  pull_request: # 或者在 PR 时触发
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y g++ libomp-dev
+
+    - name: Compile and Run Benchmarks
+      run: |
+        mkdir -p build
+        for program in before_optimize cmp0 try3 ; do
+          echo "Compiling $program..."
+          g++ -O0 -std=c++20 -m64 -mavx2 -fopenmp -o "./build/$program" "./src/$program.cpp"
+
+          echo "Running $program..."
+          start_time=$(date +%s%3N)
+          ./build/$program 2333 > "./build/${program}_output.txt"
+          end_time=$(date +%s%3N)
+          runtime=$((end_time - start_time))
+          echo "$program runtime: ${runtime}ms" >> "./build/benchmark_results.txt"
+          cat ./build/${program}_output.txt"
+        done
+
+    - name: Display Results
+      run: cat ./build/benchmark_results.txt
