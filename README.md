@@ -15,7 +15,8 @@ draft cache| LUT + v2a,列优先       | 2000 1600
 try1      | LUT + 分块(企图迎合cache)| 2000 1200
 cmp2      | LUT + v2a              | 1700 650(一维vector的话乘2、二维数组1600 800)
 try2      | LUT + v2a + AVX2       | 400 80
-try3      | LUT + v2a + OpenMP(16) | 260 100 (4核 450 170; 2核 900 330)
+try3      | LUT + v2a + OpenMP(16) | 260 100 (4thread 450 170; 2thread 900 330)
+try3      | LUT + v2a + OpenMP(16) x AVX2| 62 16 (4thread 116 20; 32thread 54 16; 2thread 230 40)
 
 **可能方案**
 
