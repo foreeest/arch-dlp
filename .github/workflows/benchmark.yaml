@@ -31,7 +31,7 @@ jobs:
           end_time=$(date +%s%3N)
           runtime=$((end_time - start_time))
           echo "$program runtime: ${runtime}ms" >> "./build/benchmark_results.txt"
-          cat ./build/${program}_output.txt"
+          cat ./build/${program}_output.txt
         done
 
     - name: Display Results
