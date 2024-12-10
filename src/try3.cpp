@@ -259,7 +259,8 @@ public:
 };
 
 int main(int argc, const char **argv) { 
-  omp_set_num_threads(4); // 强制使用 4 个线程
+  // omp_set_num_threads(4); // 强制使用 4 个线程
+  omp_set_num_threads(2);
   constexpr size_t size = 16384;
   FigureProcessor processor(size, argc > 1 ? std::stoul(argv[1]) : 0);
   processor.runBenchmark();
