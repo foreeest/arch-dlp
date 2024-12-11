@@ -20,6 +20,7 @@ jobs:
 
     - name: Compile and Run Benchmarks
       run: |
+        echo "CPU cores: $(nproc)"
         mkdir -p build
         for program in before_optimize cmp0 try3 ; do
           echo "Compiling $program..."
@@ -33,6 +34,3 @@ jobs:
           echo "$program runtime: ${runtime}ms" >> "./build/benchmark_results.txt"
           cat ./build/${program}_output.txt
         done
-
-    - name: Display Results
-      run: cat ./build/benchmark_results.txt
