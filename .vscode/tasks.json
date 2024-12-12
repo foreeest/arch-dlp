@@ -10,9 +10,12 @@
             "-O0",
             "-m64",
             "-mavx2",
+            "-march=native",
+            "-fopenmp",
+            "-g",
             "${file}",
             "-o",
-            "${fileDirname}/${fileBasenameNoExtension}"
+            "${fileDirname}/../build/${fileBasenameNoExtension}"
         ],
         "group": {
           "kind": "build",
@@ -21,7 +24,7 @@
         "detail": "Compile the before_optimize.cpp file."
       },
       {
-        "label": "Run Program",
+        "label": "Run Program with 2333",
         "type": "shell",
         "command": "./${fileBasenameNoExtension}",
         "args": ["2333"],

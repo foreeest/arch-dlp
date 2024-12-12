@@ -169,8 +169,23 @@ i+1会被i覆盖掉
 - github codespace 老是报错
 
 我本机是支持avx512f 和 avx512vl
+code space和action都不支持
 ```shell
 cpuid | grep -i avx512
 
 
 ```
+最无敌的是AVX2根本没有方法可以往下转，那只能全部换成16bit的  
+别无选择  
+
+pow其实没有办法simd化   
+一个是因为AVX2没有提供32bit往下转的，
+另一个是因为查表索引访存输出的结果就只有32bit的   
+即LUT和AVX2及8位存储无法实现simd  
+如果我直接扩展为32bit，那也会拖慢GF，使总用时不会更快，且内存翻4倍  
+packus可以转，但是它a、b交替前后各一半的转法，注定只能支持4路数据并行  
+另外并行开根也是对32bit操作数，这个也被限制了  
+
+单步调试发现`_mm_packus_epi32`不符合预期行为  
+问题在于Saturate不是truncate  
+需要把lut改成32bit的
