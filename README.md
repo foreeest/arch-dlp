@@ -164,3 +164,13 @@ https://www.chenshaowen.com/blog/github-container-registry.html
 OpenMP对GF是没有影响的，对POW有影响  
 为什么呢？主要问题应该是store16会覆盖，因为openmp调度完是不按顺序的，
 i+1会被i覆盖掉  
+
+- 如何对齐
+- github codespace 老是报错
+
+我本机是支持avx512f 和 avx512vl
+```shell
+cpuid | grep -i avx512
+
+
+```

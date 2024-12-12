@@ -8,6 +8,21 @@ on:
   workflow_dispatch: # 允许手动触发
 
 jobs:
+  check_cpu:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check CPU Features
+      run: |
+        lscpu | grep Flags
+        grep avx /proc/cpuinfo
+
+    - name: Install cpuid
+      run: sudo apt-get install cpuid
+    
+    - name: Check CPU Features
+      run: cpuid | grep -i avx512
+
   benchmark:
     runs-on: ubuntu-latest
 
@@ -24,7 +39,7 @@ jobs:
         mkdir -p build
         for program in before_optimize final ; do
           echo "Compiling $program..."
-          g++ -O0 -std=c++20 -m64 -mavx2 -march=native -fopenmp -o "./build/$program" "./src/$program.cpp"
+          g++ -O0 -std=c++20 -m64 -mavx2 -mavx512f -mavx512vl -march=native -fopenmp -o "./build/$program" "./src/$program.cpp"
 
           echo "Running $program..."
           start_time=$(date +%s%3N)
