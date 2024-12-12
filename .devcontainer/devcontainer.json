@@ -1,12 +1,29 @@
 {
-    "name": "C++ Development",
-    "image": "mcr.microsoft.com/vscode/devcontainers/cpp:0-ubuntu-22.04",
-    "features": {
-      "ghcr.io/devcontainers/features/ghc:1": "latest"
-    },
-    "postCreateCommand": "echo CPU cores: $(nproc) && sudo apt-get install -y g++ build-essential cmake openmp avx2 libomp-dev",
-    "runArgs": [
-      "--cpus=4"
-    ]
-  }
-  
+  "name": "C++ Development with AVX2, SSE4.1, OpenMP",
+  "image": "mcr.microsoft.com/vscode/devcontainers/cpp:0-ubuntu-22.04", 
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "C_Cpp.default.compilerPath": "/usr/bin/g++",
+        "C_Cpp.default.intelliSenseMode": "gcc-x64",
+        "C_Cpp.default.includePath": [
+          "/usr/include/c++/11",
+          "/usr/local/include",
+          "/usr/include"
+        ],
+        "C_Cpp.default.defines": [
+          "AVX2",
+          "SSE4_1",
+          "OPENMP"
+        ]
+      },
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-vscode.makefile-tools"
+      ]
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y build-essential libomp-dev",
+  "remoteUser": "vscode"
+}

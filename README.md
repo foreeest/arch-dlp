@@ -186,6 +186,6 @@ pow其实没有办法simd化
 packus可以转，但是它a、b交替前后各一半的转法，注定只能支持4路数据并行  
 另外并行开根也是对32bit操作数，这个也被限制了  
 
-单步调试发现`_mm_packus_epi32`不符合预期行为  
-问题在于Saturate不是truncate  
-需要把lut改成32bit的
+单步调试发现`_mm_packus_epi32`不符合预期行为   
+问题在于Saturate不是truncate   
+需要把lut改成32bit的  
