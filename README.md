@@ -7,8 +7,10 @@
 - 空跑时基本只在一个CPU上跑满，O0在10s左右(6.2 + 4.6)，O2、O3在2s左右
 - 每次跑的都不一样，即使设置了随机种子
 - 命令都是`g++ -O0 -std=c++20 -m64 -mavx2 -o "$PROGRAM_NAME" "$PROGRAM_NAME.cpp"`，脚本跑的
-程序      |   描述                   | 用时           
-----------| -------------          | ---------
+
+
+程序      |  描述                | 用时           
+--- | ---- | -----
 cmp0      | origin version，拆开来输出 | 5800 5800
 cmp1      | LUT                    | 5200 2000
 draft cache | LUT + v2a,列优先       | 2000 1600
@@ -116,7 +118,7 @@ powOpt1: 110 ms
 中间加乘运算确实是占时间的，注释掉快1倍
 
 github action使用姿势不对？
-试试github codespace？
+试试github codespace？ 四核有个两倍，比github action好  
 
 ## 巻积分离
 3x3理论加速比不高，但不知道能否利用其局部性  
@@ -127,7 +129,10 @@ github action使用姿势不对？
 这个快不了多少  
 
 ## OpenCV源码
-进一步缓存优化  
+https://github.com/egonSchiele/OpenCV/blob/master/modules/imgproc/src/smooth.cpp
+- [ ] 进一步缓存优化  
+https://www.cnblogs.com/Imageshop/p/6376028.html
+- [ ] 存储对齐？
 
 ## tbb
 
@@ -138,7 +143,24 @@ md配置有点问题
 - [ ] char存像素高斯滤波会溢出吗？
 - [ ] 目前的都是开发版，没管GF边缘，这个不影响时间的
 - [ ] 校验和在干啥？
+- [ ] 代码格式改为一致
 
 2333原始校验和684550983
 2222原始校验和683986230
 1111原始校验和680660706
+
+
+## devcontainer
+https://www.chenshaowen.com/blog/github-container-registry.html  
+
+## Instruction Latency
+
+- cvtepu8_epi32
+    - [ ] 测试对512的支持
+    - `-AVX512F`
+
+## OpenMP会打乱执行写入顺序造成错误
+出现了一个棘手的问题
+OpenMP对GF是没有影响的，对POW有影响  
+为什么呢？主要问题应该是store16会覆盖，因为openmp调度完是不按顺序的，
+i+1会被i覆盖掉  

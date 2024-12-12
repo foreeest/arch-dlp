@@ -4,7 +4,7 @@
     "features": {
       "ghcr.io/devcontainers/features/ghc:1": "latest"
     },
-    "postCreateCommand": "sudo apt-get install -y g++ build-essential cmake openmp avx2 libomp-dev",
+    "postCreateCommand": "echo CPU cores: $(nproc) && sudo apt-get install -y g++ build-essential cmake openmp avx2 libomp-dev",
     "runArgs": [
       "--cpus=4"
     ]

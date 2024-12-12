@@ -161,19 +161,9 @@ public:
     unsigned int sum = calcChecksum();
 
     start = std::chrono::high_resolution_clock::now();
-    // gFOpt();
-    end = std::chrono::high_resolution_clock::now();
-    std::cout << "gFOpt: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms\n";
-
-    start = std::chrono::high_resolution_clock::now();
     powerLawTransformation();
     end = std::chrono::high_resolution_clock::now();
     std::cout << "pow: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms\n";
-
-    start = std::chrono::high_resolution_clock::now();
-    // powOpt();
-    end = std::chrono::high_resolution_clock::now();
-    std::cout << "powOpt: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " ms\n";
 
     sum += calcChecksum();
     sum %= 1000000007;
