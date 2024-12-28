@@ -157,7 +157,7 @@ LUT + vec改数组  | 2400ms      | 4.8     | 高斯1750、幂次650
 2. **github action默认配置**  
 > 环境： 2核  ubuntu-latest  
 
-<img src="./statics/img/gitub_action.png" alt="github_action_perf" height="200">
+<img src="./statics/img/github_action.png" alt="github_action_perf" height="200">
 
 可以看到在OpenMP几乎不起作用的情况下加速比约为15倍  
 
