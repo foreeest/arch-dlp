@@ -37,7 +37,7 @@ jobs:
       run: |
         echo "CPU cores: $(nproc)"
         mkdir -p build
-        for program in before_optimize final after_optimize ; do
+        for program in before_optimize after_optimize ; do
           echo "Compiling $program..."
           g++ -O0 -std=c++20 -m64 -mavx2 -msse4.1 -march=native -fopenmp -o "./build/$program" "./src/$program.cpp"
 
