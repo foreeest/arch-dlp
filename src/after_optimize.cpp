@@ -73,18 +73,22 @@ public:
             __m256i row3_mid_16   = _mm256_cvtepu8_epi16(row3_mid);
             __m256i row3_right_16 = _mm256_cvtepu8_epi16(row3_right);
 
-            // 计算加权和, 这样调整运算顺序加法次数变成原来的log_{2}n
+            // 计算加权和, 这样调整运算顺序乘法(左移)只需要2次
             __m256i weighted_sum = _mm256_add_epi16(
                 _mm256_add_epi16(
                     _mm256_add_epi16(row1_left_16, row1_right_16),
-                    _mm256_add_epi16(_mm256_slli_epi16(row1_mid_16, 1), _mm256_slli_epi16(row2_mid_16, 2))
+                    _mm256_add_epi16(row3_left_16, row3_right_16)
                 ),
-                _mm256_add_epi16(
-                    _mm256_add_epi16(row3_left_16, row3_right_16),
-                    _mm256_add_epi16(_mm256_slli_epi16(row2_left_16, 1), _mm256_slli_epi16(row2_right_16, 1))
+                _mm256_slli_epi16(
+                    _mm256_add_epi16(
+                        _mm256_add_epi16(row2_left_16, row2_right_16),
+                        _mm256_add_epi16(row1_mid_16, row3_mid_16)
+                    ),
+                    1
                 )
             );
-            weighted_sum = _mm256_add_epi16(weighted_sum, _mm256_slli_epi16(row3_mid_16, 1));
+            // weighted_sum = _mm256_add_epi16(weighted_sum, _mm256_mullo_epi16(row2_mid_16, _mm256_set1_epi16(4)));
+            weighted_sum = _mm256_add_epi16(weighted_sum, _mm256_slli_epi16(row2_mid_16, 2));
 
             // 平均计算
             __m256i result_16 = _mm256_srli_epi16(weighted_sum, 4);
@@ -199,10 +203,6 @@ public:
       // 加载 8 字节到 SIMD 寄存器； 读16byte，但有效只有8byte，gather是瓶颈；load64没有比128快
       __m128i data = _mm_loadu_si128(reinterpret_cast<const __m128i*>(&figure[i]));
 
-      // 生成掩码：检查 data 中哪些元素为 0
-      __m128i zeroVec = _mm_setzero_si128();
-      __m128i mask = _mm_cmpeq_epi8(data, zeroVec); // data[i] == 0 -> mask[i] = 0xff
-
       // 将 8 位数据扩展为 32 位整数，适配 gammaLUT 查找；取data的低64bit
       __m256i indices = _mm256_cvtepu8_epi32(data);
 
@@ -214,13 +214,11 @@ public:
 
       // SSE is supported
       __m128i lutData16  = _mm_packus_epi32(_mm256_extracti128_si256(lutData, 0), _mm256_extracti128_si256(lutData, 1));
+      __m128i zeroVec = _mm_setzero_si128();
       __m128i lutData8 = _mm_packus_epi16(lutData16, zeroVec);
 
-      // 使用掩码将为 0 的元素替换为 0
-      __m128i resultVec = _mm_blendv_epi8(lutData8, zeroVec, mask);
-
       // 将处理结果存回 `result` 数组；64匹配上步长为8,使openMP仍然正确
-      _mm_storeu_si64(reinterpret_cast<__m128i*>(&result[i]), resultVec);
+      _mm_storeu_si64(reinterpret_cast<__m128i*>(&result[i]), lutData8);
     }
   }
 

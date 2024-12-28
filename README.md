@@ -10,7 +10,7 @@ $ sudo apt-get install -y g++ libomp-dev
 do the test  
 ```shell
 $ ./runOmpCode.sh before_optimize
-$ ./runOmpCode.sh final
+$ ./runOmpCode.sh after_optimize
 ```
 
 or debug with vscode  
