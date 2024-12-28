@@ -14,12 +14,16 @@ class FigureProcessor {
 private:
   unsigned char* figure; // 一维数组
   unsigned char* result;
+  // alignas(32) unsigned char* figure; 
+  // alignas(32) unsigned char* result;
   const size_t size;
 
 public:
   FigureProcessor(size_t size, size_t seed = 0) : size(size) {
     figure = new unsigned char[size * size];
     result = new unsigned char[size * size];
+    // figure = static_cast<unsigned char*>(_mm_malloc(size * size * sizeof(unsigned char) ,32));
+    // result = static_cast<unsigned char*>(_mm_malloc(size * size * sizeof(unsigned char) ,32));
 
     // !!! Please do not modify the following code !!!
     std::random_device rd;
@@ -39,6 +43,8 @@ public:
   ~FigureProcessor() {
     delete[] figure;
     delete[] result;
+    // _mm_free(figure);
+    // _mm_free(result);
   }
 
   void gaussianFilter() {
@@ -206,7 +212,7 @@ public:
       // 将 8 位数据扩展为 32 位整数，适配 gammaLUT 查找；取data的低64bit
       __m256i indices = _mm256_cvtepu8_epi32(data);
 
-      // 获取 gammaLUT 中的值； 步长为1byte，因为lutAligned的数据是char
+      // 获取 gammaLUT 中的值； 步长为4byte，因为lutAligned的数据是unsigned int
       __m256i lutData = _mm256_i32gather_epi32(reinterpret_cast<const int*>(lutAligned), indices, 4);
 
       // 给他把8个int压缩回8个char，dst高64位置为0

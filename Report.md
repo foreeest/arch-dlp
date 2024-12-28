@@ -1,7 +1,7 @@
 # 硬件加速C++图像处理
 
 ## 概要
-我采用LUT、访存优化、simd、OpenMP等方法优化高斯滤波和幂次变换两个图像处理算法，在本地4线程环境达到超过40倍的优化效果，在github codespace4核配置下达到25倍优化效果。接下来我将详细描述各个子优化带来的效果。
+我采用LUT、访存优化、simd、OpenMP等方法优化高斯滤波和幂次变换两个图像处理算法，在本地4线程环境达到超过40倍的优化效果，在github codespace4核配置下达到34倍优化效果。接下来我将详细描述各个子优化带来的效果。
 
 ## 优化思路
 
@@ -108,6 +108,9 @@ weighted_sum = _mm256_add_epi16(weighted_sum, _mm256_slli_epi16(row2_mid_16, 2))
 
 simd对我来说性能提升是飞跃式的，在步长有限和类型转换等限制下仍然快了约**3倍**(一开始写的幂次变换直接以32为步长快了约8倍，可惜逻辑不正确)  
 
+这里是考虑了SIMD和除OpenMP外的优化后测试出来的用时分解，可以看到幂次变换用时略长，而不使用SIMD前幂次变换用时仅是高斯滤波的 $ \frac{1}{3} $ ，所以其实幂次变换从SIMD得到的增益不高  
+<img src="./statics/img/flameg.png" alt="flamegraph_perf" height="200">  
+
 写出来的程序再回看很简单，但是没写出来之前查询适合的接口还是有一点点tricky。一个问题就是幂次变换中32bit压缩回8bit的简易接口`_mm256_cvtepi32_epi8`只在AVX512支持，实际上所有`cvtepi32`系列都只在AVX512支持。因此我只能通过两次`packus`操作来压缩  
 ```cpp
 __m128i lutData16  = _mm_packus_epi32(_mm256_extracti128_si256(lutData, 0),_mm256_extracti128_si256(lutData, 1));
@@ -125,7 +128,7 @@ omp_set_num_threads(4);
 ```
 在高斯滤波和幂次变换中，我们基本上不需要处理不同循环轮数之间的数据依赖或者可能带来的竞态，我们可以放心地使用OpenMP让它来调度分配循环。但是要注意在OpenMP的使用下，我们不能再假设循环i核i+1轮之间顺序发生，因此原来无所谓的越界都要小心避免，譬如我们每次循环处理8x8=64bit数据，用`storeu_si128`虽然高64位都是0，在顺序条件下不会影响最终结果，但是乱序下会覆盖其它循环的结果，故必须要用`storeu_si64`  
 
-OpenMP加速效果非常显著，我在本地4线程加速了将近4倍(线程数远比核心数少的时候接近线性加速)，且兼容SIMD的优化，使累计加速比来到**47.9**，但是在4核github codespace，OpenMP只加速了2倍左右，在github action的默认2核配置下OpenMP竟然几乎不起作用
+OpenMP加速效果非常显著，我在本地4线程加速了将近4倍(线程数远比核心数少的时候接近线性加速)，且兼容SIMD的优化，使累计加速比来到**58.7**，但是在4核github codespace，OpenMP只加速了2倍左右，在github action的默认2核配置下OpenMP竟然几乎不起作用
 
 
 ## 代码运行
@@ -146,11 +149,11 @@ $ g++ -O0 -std=c++20 -m64 -mavx2 -msse4.1 -march=native -fopenmp -o "./build/$PR
 
 code            | performance | times   | description
 ----------------| ------------|---------| ------------
-before_optimize | 11500ms     | 1       | 原版
+before_optimize | 11500ms     | 1       | 原版(各约5800)
 LUT             | 7200ms      | 1.6     | 幂次变换5800 -> 2000
 LUT + vec改数组  | 2400ms      | 4.8     | 高斯1750、幂次650
 叠加OpenMP(4线程) | 620ms       | 18.5    | 高斯450、幂次170
-再叠加SIMD       | 240ms       | 47.9    | 最终提交版
+再叠加SIMD       | 196ms       | 58.7    | 最终提交版
 
 注：因为本身运行时间存在相对随机性，大数字向百位取整; 另外，小优化没有单独拿出来分解了   
 
@@ -165,12 +168,9 @@ LUT + vec改数组  | 2400ms      | 4.8     | 高斯1750、幂次650
 > 环境： 4核 16GB内存、ubuntu-22.04  
 
 原版与优化版；-O0至-O3  
-<img src="./statics/img/origin.png" alt="github_action_perf" height="200">  
+<img src="./statics/img/after_optimize.png" alt="github_codespace_perf" height="400">  
 
-<img src="./statics/img/final.png" alt="github_action_perf" height="200">
-
-
-这里-O0下加速约25倍  
+这里-O0下加速约34倍  
 
 ## 总结  
 本次实验我收获非常大，对硬件友好型代码有了更具体的认识！  
