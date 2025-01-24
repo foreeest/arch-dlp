@@ -3,7 +3,7 @@
 *draft*
 
 *.env
-*.pdf
+
 *.DS_store
 *migrations*
 **__pycache__**
