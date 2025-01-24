@@ -1,6 +1,6 @@
 # SYSU Architeture Final Project
 
-This is a simple implementation of SYSU Architeture final project, it use hardware technique to accelerate image processing(eg. SIMD, OpenMP), see the report for more details.
+This is a simple implementation of SYSU Architeture final project, it use architechture technique to accelerate image processing, especially data level parallism technique(eg. SIMD, OpenMP).Please see the report for more details.
 
 ## Installation
 
